@@ -468,6 +468,8 @@ function showScreen(id){
 }
 
 // ============ CLAUDE ============
+const SERVIDOR = 'https://shapeai-servidor-production.up.railway.app/api/claude';
+
 async function claude(prompt,sys){
   const body={model:"claude-sonnet-4-20250514",max_tokens:1200,messages:[{role:"user",content:prompt}]};
   if(sys) body.system=sys;
