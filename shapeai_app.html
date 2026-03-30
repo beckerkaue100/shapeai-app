@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ShapeAI – Treino & Nutrição Inteligente</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0a0a0f;--surface:#111118;--card:#16161f;--border:#1e1e2e;--accent:#c8f135;--accent2:#5c6bff;--text:#f0f0f5;--muted:#6b6b80;--danger:#ff4f6a;--water:#38bdf8;--radius:16px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+nav{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--border);background:rgba(10,10,15,0.95);position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.logo{font-family:'Bebas Neue';font-size:28px;letter-spacing:2px;color:var(--accent)}
+.logo span{color:var(--text)}
+.nav-badge{background:var(--accent);color:#000;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:1px}
+.tabs{display:flex;gap:4px;padding:14px 20px 0;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:9px 14px;border-radius:12px 12px 0 0;font-size:12px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:all .2s;white-space:nowrap}
+.tab.active{background:var(--card);color:var(--accent);border-bottom:2px solid var(--accent)}
+.tab:hover:not(.active){color:var(--text)}
+.screen{display:none;padding:18px;max-width:700px;margin:0 auto;padding-bottom:40px}
+.screen.active{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:14px}
+.card-title{font-family:'Bebas Neue';font-size:19px;letter-spacing:1.5px;color:var(--accent);margin-bottom:14px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group.full{grid-column:span 2}
+label{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+input,select{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:11px 13px;font-family:'DM Sans';font-size:14px;transition:border-color .2s;appearance:none;width:100%}
+input:focus,select:focus{outline:none;border-color:var(--accent2);box-shadow:0 0 0 3px rgba(92,107,255,0.15)}
+select option{background:var(--card)}
+.btn{padding:12px 22px;border-radius:12px;font-weight:700;font-family:'DM Sans';font-size:14px;cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:8px;justify-content:center}
+.btn-primary{background:var(--accent);color:#000;width:100%;margin-top:8px;font-size:15px}
+.btn-primary:hover{background:#d8ff40;transform:translateY(-1px);box-shadow:0 8px 24px rgba(200,241,53,0.22)}
+.btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border);font-size:13px}
+.btn-outline:hover{border-color:var(--accent2);color:var(--accent2)}
+.btn-sm{padding:7px 13px;font-size:12px;border-radius:8px}
+.ai-output{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:12px;padding:16px;font-size:14px;line-height:1.8;color:var(--text);white-space:pre-wrap;margin-top:12px;min-height:60px}
+.ai-output.loading{color:var(--muted);font-style:italic}
+.cursor{display:inline-block;width:8px;height:16px;background:var(--accent);vertical-align:middle;animation:blink .6s infinite;border-radius:2px;margin-left:2px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.macros-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.macro-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px;text-align:center}
+.macro-card .val{font-family:'Bebas Neue';font-size:26px;margin:3px 0}
+.macro-card .unit{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.macro-card .name{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:2px}
+.macro-card.protein .val{color:#5c6bff}
+.macro-card.carbs .val{color:#c8f135}
+.macro-card.fat .val{color:#ff9f40}
+.kcal-big{font-family:'Bebas Neue';font-size:44px;color:var(--accent);text-align:center}
+.kcal-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;text-align:center}
+.prog-bar{background:var(--border);border-radius:4px;height:8px;overflow:hidden;margin-top:5px}
+.prog-fill{height:100%;border-radius:4px;transition:width .8s ease}
+.prog-top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:10px}
+.prog-main{font-family:'Bebas Neue';font-size:38px;color:var(--accent);line-height:1}
+.prog-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.food-row{display:flex;gap:9px;margin-bottom:10px}
+.food-row input{flex:1}
+.food-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 15px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start;animation:fadeIn .3s ease}
+.food-info{flex:1}
+.food-name{font-size:14px;font-weight:600;margin-bottom:3px}
+.food-qty-txt{font-size:12px;color:var(--muted);margin-bottom:7px}
+.food-macros{display:flex;gap:5px;flex-wrap:wrap}
+.mp{font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px}
+.mp-k{background:rgba(200,241,53,0.12);color:var(--accent)}
+.mp-p{background:rgba(92,107,255,0.12);color:#7c8dff}
+.mp-c{background:rgba(200,241,53,0.1);color:#a8d020}
+.mp-g{background:rgba(255,159,64,0.12);color:#ff9f40}
+.food-loading{color:var(--muted);font-size:13px;font-style:italic;display:flex;align-items:center;gap:8px;padding:4px 0}
+.meal-section{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;overflow:hidden}
+.meal-hdr{padding:13px 16px;background:var(--surface);display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}
+.meal-hdr h4{font-size:13px;font-weight:700}
+.meal-sub{font-size:11px;color:var(--muted)}
+.meal-body{padding:14px}
+.tag{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.tag-green{background:rgba(200,241,53,0.15);color:var(--accent)}
+.tag-blue{background:rgba(92,107,255,0.15);color:#7c8dff}
+.spinner{width:15px;height:15px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.error-box{background:rgba(255,79,106,0.1);border:1px solid rgba(255,79,106,0.3);border-radius:10px;padding:11px 13px;color:#ff8096;font-size:13px;margin-top:8px}
+.empty-state{text-align:center;padding:28px 16px;color:var(--muted);font-size:13px}
+.empty-state .big{font-size:34px;margin-bottom:8px}
+/* ---- ÁGUA ---- */
+.water-display{text-align:center;padding:10px 0 16px}
+.water-amount{font-family:'Bebas Neue';font-size:56px;color:var(--water);line-height:1}
+.water-goal{font-size:13px;color:var(--muted);margin-top:2px}
+.water-bar{background:var(--border);border-radius:8px;height:16px;overflow:hidden;margin:12px 0}
+.water-fill{height:100%;border-radius:8px;background:linear-gradient(90deg,#0ea5e9,#38bdf8);transition:width 1s ease}
+.water-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.water-btn{background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.25);color:var(--water);border-radius:10px;padding:10px 6px;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;font-family:'DM Sans'}
+.water-btn:hover{background:rgba(56,189,248,0.25);transform:translateY(-1px)}
+.water-log{margin-top:14px}
+.water-log-item{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;font-size:13px}
+.water-log-item .time{color:var(--muted);font-size:11px}
+/* ---- PESO ---- */
+.weight-entry{display:flex;gap:10px;align-items:flex-end;margin-bottom:14px}
+.weight-entry input{flex:1}
+.weight-entry .date-in{width:150px;flex:none}
+.weight-item{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:7px}
+.weight-item .w-val{font-family:'Bebas Neue';font-size:24px;color:var(--accent)}
+.weight-item .w-date{font-size:12px;color:var(--muted)}
+.weight-item .w-diff{font-size:12px;font-weight:700}
+.w-diff.up{color:var(--danger)}
+.w-diff.down{color:var(--accent)}
+.weight-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.w-stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px;text-align:center}
+.w-stat .v{font-family:'Bebas Neue';font-size:24px}
+.w-stat .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+/* ---- NOTIF ---- */
+.notif-toggle{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:10px}
+.notif-info h4{font-size:14px;font-weight:600;margin-bottom:2px}
+.notif-info p{font-size:12px;color:var(--muted)}
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:12px;cursor:pointer;transition:.3s}
+.toggle-slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
+.toggle input:checked+.toggle-slider{background:var(--accent)}
+.toggle input:checked+.toggle-slider:before{transform:translateX(20px)}
+.notif-schedule{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px}
+.notif-schedule h4{font-size:13px;font-weight:700;margin-bottom:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.notif-time-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)}
+.notif-time-row:last-child{border-bottom:none}
+.notif-time-row span{font-size:13px}
+.notif-time-row input[type=time]{width:110px;flex:none;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 10px;font-size:13px}
+.notif-log{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px}
+.notif-log h4{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.notif-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.notif-item:last-child{border-bottom:none}
+.notif-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+/* HERO */
+.hero{padding:28px 0 18px;text-align:center}
+.hero h1{font-family:'Bebas Neue';font-size:44px;letter-spacing:3px;line-height:1.1}
+.hero h1 span{color:var(--accent)}
+.hero p{color:var(--muted);font-size:13px;margin-top:8px}
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.feat-item{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:15px}
+.feat-icon{font-size:22px;margin-bottom:7px}
+.feat-item h3{font-size:12px;font-weight:700;margin-bottom:3px}
+.feat-item p{font-size:11px;color:var(--muted);line-height:1.5}
+.hist-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 15px;margin-bottom:8px;cursor:pointer;transition:border-color .2s}
+.hist-item:hover{border-color:var(--accent2)}
+canvas{border-radius:10px}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+#foto-drop:hover{border-color:var(--accent);background:rgba(200,241,53,0.04)}
+#foto-drop.has-photo{border-color:var(--accent);border-style:solid}
+@media(max-width:480px){
+  .form-grid{grid-template-columns:1fr}
+  .form-group.full{grid-column:span 1}
+  .macros-grid{grid-template-columns:1fr 1fr}
+  .feat-grid{grid-template-columns:1fr}
+  .water-btns{grid-template-columns:repeat(4,1fr)}
+  .weight-stats{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">SHAPE<span>AI</span></div>
+  <span class="nav-badge">BETA</span>
+</nav>
+
+<div class="tabs">
+  <button class="tab active"  onclick="showScreen('home')">🏠</button>
+  <button class="tab"         onclick="showScreen('treino')">💪 Treino</button>
+  <button class="tab"         onclick="showScreen('macros')">📊 Macros</button>
+  <button class="tab"         onclick="showScreen('refeicoes')">🍽️ Refeições</button>
+  <button class="tab"         onclick="showScreen('agua')">💧 Água</button>
+  <button class="tab"         onclick="showScreen('peso')">⚖️ Peso</button>
+  <button class="tab"         onclick="showScreen('notif')">🔔 Alertas</button>
+  <button class="tab"         onclick="showScreen('historico')">📋 Histórico</button>
+</div>
+
+<!-- HOME -->
+<div id="screen-home" class="screen active">
+  <div class="hero">
+    <h1>TREINO &<br><span>NUTRIÇÃO</span><br>COM IA</h1>
+    <p>Treinos personalizados + rastreamento completo de saúde.</p>
+  </div>
+  <div class="feat-grid">
+    <div class="feat-item"><div class="feat-icon">🏋️</div><h3>Treino por IA</h3><p>Plano semanal baseado no seu perfil e objetivo.</p></div>
+    <div class="feat-item"><div class="feat-icon">📊</div><h3>Meta de Macros</h3><p>Proteína, carbo e gordura calculados para você.</p></div>
+    <div class="feat-item"><div class="feat-icon">🍽️</div><h3>Rastrear Refeições</h3><p>Qualquer alimento — a IA calcula os macros.</p></div>
+    <div class="feat-item"><div class="feat-icon">💧</div><h3>Água + Hidratação</h3><p>Registre copos e veja seu progresso do dia.</p></div>
+    <div class="feat-item"><div class="feat-icon">⚖️</div><h3>Evolução do Peso</h3><p>Gráfico da sua evolução ao longo do tempo.</p></div>
+    <div class="feat-item"><div class="feat-icon">🔔</div><h3>Alertas de Refeição</h3><p>Notificações para não esquecer de se alimentar.</p></div>
+  </div>
+  <div style="margin-top:18px">
+    <button class="btn btn-primary" onclick="showScreen('macros')">📊 Começar agora</button>
+  </div>
+</div>
+
+<!-- TREINO -->
+<div id="screen-treino" class="screen">
+  <div class="card">
+    <div class="card-title">💪 SEU PERFIL DE TREINO</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Idade</label><input type="number" id="t-idade" placeholder="Ex: 28"></div>
+      <div class="form-group"><label>Sexo</label><select id="t-sexo"><option value="">Selecionar</option><option value="masculino">Masculino</option><option value="feminino">Feminino</option></select></div>
+      <div class="form-group"><label>Peso (kg)</label><input type="number" id="t-peso" placeholder="Ex: 75" step="0.5"></div>
+      <div class="form-group"><label>Altura (cm)</label><input type="number" id="t-altura" placeholder="Ex: 175"></div>
+      <div class="form-group full"><label>Objetivo</label><select id="t-obj"><option value="">Selecionar</option><option value="hipertrofia">Hipertrofia</option><option value="emagrecimento">Emagrecimento</option><option value="força">Força</option><option value="resistencia">Resistência</option><option value="saude">Saúde geral</option></select></div>
+      <div class="form-group"><label>Nível</label><select id="t-nivel"><option value="">Selecionar</option><option value="iniciante">Iniciante</option><option value="intermediario">Intermediário</option><option value="avancado">Avançado</option></select></div>
+      <div class="form-group"><label>Dias/semana</label><select id="t-dias"><option value="">Selecionar</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></div>
+      <div class="form-group full"><label>Equipamentos</label><select id="t-equip"><option value="">Selecionar</option><option value="academia completa">Academia completa</option><option value="halteres e barra">Halteres e barra</option><option value="apenas halteres">Apenas halteres</option><option value="sem equipamento">Peso corporal</option></select></div>
+      <div class="form-group full"><label>Lesões (opcional)</label><input type="text" id="t-lesoes" placeholder="Ex: dor no joelho..."></div>
+    </div>
+    <button class="btn btn-primary" id="btn-treino" onclick="gerarTreino()">⚡ Gerar Treino com IA</button>
+  </div>
+  <div id="treino-output" style="display:none">
+    <div class="card">
+      <div class="card-title">🤖 SEU TREINO</div>
+      <div class="ai-output" id="treino-res"></div>
+      <div style="display:flex;gap:8px;margin-top:11px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="salvarHist('treino')">💾 Salvar</button>
+        <button class="btn btn-outline btn-sm" onclick="gerarTreino()">🔄 Novo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MACROS META -->
+<div id="screen-macros" class="screen">
+  <div class="card">
+    <div class="card-title">📊 CALCULAR META DIÁRIA</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Idade</label><input type="number" id="n-idade" placeholder="Ex: 28"></div>
+      <div class="form-group"><label>Sexo</label><select id="n-sexo"><option value="">Selecionar</option><option value="masculino">Masculino</option><option value="feminino">Feminino</option></select></div>
+      <div class="form-group"><label>Peso (kg)</label><input type="number" id="n-peso" placeholder="Ex: 75" step="0.5"></div>
+      <div class="form-group"><label>Altura (cm)</label><input type="number" id="n-altura" placeholder="Ex: 175"></div>
+      <div class="form-group full"><label>Nível de atividade</label><select id="n-ativ"><option value="">Selecionar</option><option value="sedentario">Sedentário</option><option value="leve">Levemente ativo (1–2x/sem)</option><option value="moderado">Moderado (3–4x/sem)</option><option value="muito ativo">Muito ativo (5–6x/sem)</option><option value="atleta">Atleta (diário)</option></select></div>
+      <div class="form-group full"><label>Objetivo nutricional</label><select id="n-obj"><option value="">Selecionar</option><option value="ganho de massa muscular">Ganho de massa</option><option value="emagrecimento">Emagrecimento</option><option value="manutenção">Manutenção</option><option value="recomposição corporal">Recomposição</option></select></div>
+      <div class="form-group full"><label>Restrições (opcional)</label><input type="text" id="n-restr" placeholder="Ex: vegetariano, sem lactose..."></div>
+    </div>
+    <button class="btn btn-primary" id="btn-macro" onclick="calcularMacros()">🔢 Calcular com IA</button>
+  </div>
+  <div id="macro-output" style="display:none">
+    <div class="card">
+      <div class="card-title">🎯 SUA META DIÁRIA</div>
+      <div class="kcal-lbl">meta de calorias</div>
+      <div class="kcal-big" id="m-kcal">—</div>
+      <div class="kcal-lbl">kcal / dia</div>
+      <div class="macros-grid">
+        <div class="macro-card protein"><div class="name">Proteína</div><div class="val" id="m-p">—</div><div class="unit">g/dia</div><div class="prog-bar"><div class="prog-fill" id="bar-mp" style="background:#5c6bff;width:0%"></div></div></div>
+        <div class="macro-card carbs"><div class="name">Carboidrato</div><div class="val" id="m-c">—</div><div class="unit">g/dia</div><div class="prog-bar"><div class="prog-fill" id="bar-mc" style="background:#c8f135;width:0%"></div></div></div>
+        <div class="macro-card fat"><div class="name">Gordura</div><div class="val" id="m-g">—</div><div class="unit">g/dia</div><div class="prog-bar"><div class="prog-fill" id="bar-mg" style="background:#ff9f40;width:0%"></div></div></div>
+      </div>
+      <div class="ai-output" id="macro-res" style="margin-top:12px"></div>
+      <button class="btn btn-primary" style="margin-top:11px" onclick="showScreen('refeicoes')">🍽️ Registrar refeições →</button>
+    </div>
+  </div>
+</div>
+
+<!-- REFEIÇÕES -->
+<div id="screen-refeicoes" class="screen">
+  <div class="card">
+    <div class="card-title">⚡ PROGRESSO DE HOJE</div>
+    <div id="warn-meta" style="display:none"><p style="color:var(--muted);font-size:13px;margin-bottom:10px">Configure sua meta diária primeiro.</p><button class="btn btn-outline btn-sm" onclick="showScreen('macros')">📊 Configurar</button></div>
+    <div id="prog-content">
+      <div class="prog-top">
+        <div><div class="prog-label">consumido</div><div class="prog-main" id="dia-kcal">0</div><div style="font-size:11px;color:var(--muted)">de <span id="dia-meta">—</span> kcal</div></div>
+        <div style="text-align:right"><div class="prog-label">faltam</div><div style="font-family:'Bebas Neue';font-size:26px" id="dia-falta">—</div><div style="font-size:11px;color:var(--muted)">kcal</div></div>
+      </div>
+      <div class="prog-bar" style="height:12px;border-radius:6px"><div class="prog-fill" id="bar-dia" style="background:var(--accent);width:0%;height:12px;border-radius:6px"></div></div>
+      <div class="macros-grid">
+        <div class="macro-card protein"><div class="name">Proteína</div><div class="val" id="dia-p" style="font-size:20px">0g</div><div class="unit">de <span id="dia-mp">—</span>g</div><div class="prog-bar"><div class="prog-fill" id="bar-dp" style="background:#5c6bff;width:0%"></div></div></div>
+        <div class="macro-card carbs"><div class="name">Carbo</div><div class="val" id="dia-c" style="font-size:20px">0g</div><div class="unit">de <span id="dia-mc">—</span>g</div><div class="prog-bar"><div class="prog-fill" id="bar-dc" style="background:#c8f135;width:0%"></div></div></div>
+        <div class="macro-card fat"><div class="name">Gordura</div><div class="val" id="dia-g" style="font-size:20px">0g</div><div class="unit">de <span id="dia-mg">—</span>g</div><div class="prog-bar"><div class="prog-fill" id="bar-dg" style="background:#ff9f40;width:0%"></div></div></div>
+      </div>
+    </div>
+  </div>
+  <!-- FOTO -->
+  <div class="card">
+    <div class="card-title">📸 IDENTIFICAR POR FOTO</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Tire uma foto do prato ou alimento e a IA identifica tudo automaticamente.</p>
+
+    <div id="foto-drop" onclick="document.getElementById('foto-input').click()" style="border:2px dashed var(--border);border-radius:14px;padding:28px 16px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:12px">
+      <div style="font-size:36px;margin-bottom:8px">📷</div>
+      <div style="font-size:14px;font-weight:600;color:var(--text)">Clique para escolher foto</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">ou tire uma foto com a câmera</div>
+      <input type="file" id="foto-input" accept="image/*" capture="environment" style="display:none" onchange="handleFoto(event)">
+    </div>
+
+    <div id="foto-preview-wrap" style="display:none;margin-bottom:12px">
+      <img id="foto-preview" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px;border:1px solid var(--border)">
+    </div>
+
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <input type="text" id="foto-qty" placeholder="Quantidade estimada (ex: 1 prato, 200g)" style="flex:1">
+      <select id="foto-meal" style="width:140px;flex:none">
+        <option value="Café da manhã">☕ Café</option>
+        <option value="Lanche manhã">🍎 Lanche</option>
+        <option value="Almoço" selected>🍽️ Almoço</option>
+        <option value="Lanche tarde">🥜 Lanche</option>
+        <option value="Jantar">🌙 Jantar</option>
+        <option value="Ceia">🌛 Ceia</option>
+        <option value="Pré-treino">💪 Pré</option>
+        <option value="Pós-treino">⚡ Pós</option>
+      </select>
+    </div>
+
+    <button class="btn btn-primary" id="btn-foto" onclick="analisarFoto()" style="display:none">🤖 Analisar com IA</button>
+
+    <div id="foto-resultado" style="display:none" class="ai-output" style="margin-top:12px"></div>
+    <div id="foto-err" style="display:none" class="error-box"></div>
+  </div>
+
+  <!-- TEXTO -->
+  <div class="card">
+    <div class="card-title">➕ ADICIONAR POR TEXTO</div>
+    <div class="food-row"><input type="text" id="f-nome" placeholder="Ex: arroz branco, frango grelhado, banana..."></div>
+    <div class="food-row">
+      <input type="text" id="f-qty" placeholder="Quantidade (ex: 100g, 1 fatia, 2 colheres)" style="flex:1">
+      <select id="f-meal" style="width:150px;flex:none"><option value="Café da manhã">☕ Café</option><option value="Lanche manhã">🍎 Lanche</option><option value="Almoço" selected>🍽️ Almoço</option><option value="Lanche tarde">🥜 Lanche</option><option value="Jantar">🌙 Jantar</option><option value="Ceia">🌛 Ceia</option><option value="Pré-treino">💪 Pré</option><option value="Pós-treino">⚡ Pós</option></select>
+    </div>
+    <button class="btn btn-primary" id="btn-add" onclick="addAlimento()">🔍 Calcular e Adicionar</button>
+    <div id="food-err" style="display:none" class="error-box"></div>
+  </div>
+  <div id="meals-list"></div>
+  <div style="text-align:center;margin-bottom:20px">
+    <button onclick="limparDia()" style="background:transparent;color:var(--danger);border:1px solid rgba(255,79,106,0.3);border-radius:8px;padding:8px 16px;cursor:pointer;font-size:12px;font-weight:700;font-family:'DM Sans'">🗑️ Limpar dia</button>
+  </div>
+</div>
+
+<!-- ÁGUA -->
+<div id="screen-agua" class="screen">
+  <div class="card">
+    <div class="card-title">💧 HIDRATAÇÃO DE HOJE</div>
+    <div class="water-display">
+      <div class="water-amount" id="w-total">0</div>
+      <div style="font-size:16px;color:var(--muted);margin-top:2px">ml</div>
+      <div class="water-goal">Meta: <span id="w-meta">2000</span> ml/dia · <span id="w-pct">0%</span> atingido</div>
+    </div>
+    <div class="water-bar"><div class="water-fill" id="w-bar" style="width:0%"></div></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <input type="number" id="w-meta-in" placeholder="Meta (ml)" value="2000" style="flex:1">
+      <button onclick="setMetaAgua()" class="btn btn-outline btn-sm" style="flex:none;margin-top:0">Definir</button>
+    </div>
+    <div class="water-btns">
+      <button class="water-btn" onclick="addAgua(150)">+150ml<br><small>copo</small></button>
+      <button class="water-btn" onclick="addAgua(200)">+200ml<br><small>copo</small></button>
+      <button class="water-btn" onclick="addAgua(350)">+350ml<br><small>garrafa</small></button>
+      <button class="water-btn" onclick="addAgua(500)">+500ml<br><small>garrafa</small></button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <input type="number" id="w-custom" placeholder="Quantidade personalizada (ml)" style="flex:1">
+      <button onclick="addAguaCustom()" class="btn btn-outline btn-sm" style="flex:none;margin-top:0;border-color:var(--water);color:var(--water)">+ Adicionar</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📋 REGISTRO DE HOJE</div>
+    <div id="w-log">
+      <div class="empty-state"><div class="big">💧</div>Nenhum registro ainda. Beba água!</div>
+    </div>
+    <div style="text-align:center;margin-top:10px">
+      <button onclick="limparAgua()" style="background:transparent;color:var(--danger);border:1px solid rgba(255,79,106,0.3);border-radius:8px;padding:7px 14px;cursor:pointer;font-size:12px;font-weight:700;font-family:'DM Sans'">🗑️ Limpar</button>
+    </div>
+  </div>
+</div>
+
+<!-- PESO -->
+<div id="screen-peso" class="screen">
+  <div class="card">
+    <div class="card-title">⚖️ REGISTRAR PESO</div>
+    <div class="weight-entry">
+      <div class="form-group" style="flex:1"><label>Peso (kg)</label><input type="number" id="p-val" placeholder="Ex: 74.5" step="0.1"></div>
+      <div class="form-group" style="width:150px"><label>Data</label><input type="date" id="p-date"></div>
+      <button onclick="addPeso()" class="btn btn-primary btn-sm" style="margin-top:auto;width:auto;padding:11px 16px">➕</button>
+    </div>
+  </div>
+  <div id="peso-stats-card" style="display:none">
+    <div class="card">
+      <div class="card-title">📈 EVOLUÇÃO</div>
+      <div class="weight-stats">
+        <div class="w-stat"><div class="v" id="p-atual" style="color:var(--accent)">—</div><div class="l">Atual</div></div>
+        <div class="w-stat"><div class="v" id="p-inicial">—</div><div class="l">Inicial</div></div>
+        <div class="w-stat"><div class="v" id="p-diff">—</div><div class="l">Variação</div></div>
+      </div>
+      <canvas id="peso-chart" height="180"></canvas>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📋 HISTÓRICO DE PESO</div>
+    <div id="peso-list"><div class="empty-state"><div class="big">⚖️</div>Nenhum registro ainda.</div></div>
+  </div>
+</div>
+
+<!-- NOTIFICAÇÕES -->
+<div id="screen-notif" class="screen">
+  <div class="card">
+    <div class="card-title">🔔 ALERTAS DE REFEIÇÃO</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Ative as notificações para ser lembrado na hora certa de comer e tomar água.</p>
+
+    <div class="notif-toggle">
+      <div class="notif-info"><h4>🍽️ Alertas de refeição</h4><p>Lembretes para cada refeição do dia</p></div>
+      <label class="toggle"><input type="checkbox" id="notif-meal-toggle" onchange="toggleNotif('meal')"><span class="toggle-slider"></span></label>
+    </div>
+    <div class="notif-toggle">
+      <div class="notif-info"><h4>💧 Alertas de hidratação</h4><p>Lembrete a cada 1h para beber água</p></div>
+      <label class="toggle"><input type="checkbox" id="notif-water-toggle" onchange="toggleNotif('water')"><span class="toggle-slider"></span></label>
+    </div>
+    <div class="notif-toggle">
+      <div class="notif-info"><h4>⚖️ Pesagem matinal</h4><p>Lembrete para registrar seu peso ao acordar</p></div>
+      <label class="toggle"><input type="checkbox" id="notif-weight-toggle" onchange="toggleNotif('weight')"><span class="toggle-slider"></span></label>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="notif-schedule">
+      <h4>⏰ Horários das Refeições</h4>
+      <div class="notif-time-row"><span>☕ Café da manhã</span><input type="time" id="nt-cafe" value="07:00" onchange="salvarHorarios()"></div>
+      <div class="notif-time-row"><span>🍎 Lanche manhã</span><input type="time" id="nt-lanche1" value="10:00" onchange="salvarHorarios()"></div>
+      <div class="notif-time-row"><span>🍽️ Almoço</span><input type="time" id="nt-almoco" value="12:30" onchange="salvarHorarios()"></div>
+      <div class="notif-time-row"><span>🥜 Lanche tarde</span><input type="time" id="nt-lanche2" value="15:30" onchange="salvarHorarios()"></div>
+      <div class="notif-time-row"><span>🌙 Jantar</span><input type="time" id="nt-jantar" value="19:00" onchange="salvarHorarios()"></div>
+      <div class="notif-time-row"><span>⚖️ Pesagem</span><input type="time" id="nt-peso" value="07:30" onchange="salvarHorarios()"></div>
+    </div>
+    <button class="btn btn-primary" style="margin-top:0" onclick="ativarNotificacoes()">🔔 Ativar Notificações</button>
+  </div>
+
+  <div class="card">
+    <div class="notif-log">
+      <h4>📋 Alertas Recentes</h4>
+      <div id="notif-log-list">
+        <div class="empty-state" style="padding:16px"><div class="big" style="font-size:24px">🔕</div>Nenhum alerta ainda.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HISTÓRICO -->
+<div id="screen-historico" class="screen">
+  <div class="card">
+    <div class="card-title">📋 HISTÓRICO SALVO</div>
+    <div id="hist-lista"><div class="empty-state"><div class="big">📂</div>Nenhum item salvo ainda.</div></div>
+  </div>
+</div>
+
+<script>
+// ============ STATE ============
+let meta = {kcal:0,p:0,c:0,g:0};
+let alimentos = [];
+let historico = [];
+let aguaLog = [];
+let metaAgua = 2000;
+let pesoLog = [];
+let pesoChart = null;
+let notifLog = [];
+let notifIntervals = {};
+let notifEnabled = {meal:false,water:false,weight:false};
+
+// ============ NAV ============
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  const map={home:0,treino:1,macros:2,refeicoes:3,agua:4,peso:5,notif:6,historico:7};
+  document.querySelectorAll('.tab')[map[id]].classList.add('active');
+  if(id==='refeicoes') renderDia();
+  if(id==='agua') renderAgua();
+  if(id==='peso') renderPeso();
+  if(id==='notif') renderNotifLog();
+}
+
+// ============ CLAUDE ============
+async function claude(prompt,sys){
+  const body={model:"claude-sonnet-4-20250514",max_tokens:1200,messages:[{role:"user",content:prompt}]};
+  if(sys) body.system=sys;
+  const r=await fetch(SERVIDOR,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  if(!r.ok) throw new Error("API "+r.status);
+  const d=await r.json();
+  return d.content.map(b=>b.text||"").join("");
+}
+
+// ============ TREINO ============
+async function gerarTreino(){
+  const req=['t-idade','t-sexo','t-obj','t-nivel','t-dias','t-equip'];
+  for(const i of req) if(!document.getElementById(i).value){alert("Preencha todos os campos.");return;}
+  const g=id=>document.getElementById(id).value;
+  const btn=document.getElementById('btn-treino');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Gerando...';
+  document.getElementById('treino-output').style.display='block';
+  const out=document.getElementById('treino-res');
+  out.className='ai-output loading'; out.innerHTML='Montando seu treino personalizado... <span class="cursor"></span>';
+  try{
+    const r=await claude(`Personal trainer expert: treino completo para ${g('t-idade')} anos, ${g('t-sexo')}, ${g('t-peso')}kg, ${g('t-altura')}cm. Objetivo: ${g('t-obj')}. Nível: ${g('t-nivel')}. ${g('t-dias')} dias/sem. ${g('t-equip')}. Lesões: ${g('t-lesoes')||"nenhuma"}. Inclua divisão semanal, séries/reps/descanso, dicas de execução, progressão 4 semanas. Português.`);
+    out.className='ai-output'; typeText(out,r);
+  }catch(e){out.className='ai-output';out.textContent='❌ Erro: '+e.message;}
+  btn.disabled=false; btn.innerHTML='⚡ Gerar Treino com IA';
+}
+
+// ============ MACROS ============
+async function calcularMacros(){
+  const req=['n-idade','n-sexo','n-peso','n-altura','n-ativ','n-obj'];
+  for(const i of req) if(!document.getElementById(i).value){alert("Preencha todos os campos.");return;}
+  const g=id=>document.getElementById(id).value;
+  const btn=document.getElementById('btn-macro');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Calculando...';
+  document.getElementById('macro-output').style.display='block';
+  const p=parseFloat(g('n-peso')),h=parseFloat(g('n-altura')),i=parseFloat(g('n-idade')),sx=g('n-sexo'),ativ=g('n-ativ'),obj=g('n-obj');
+  let tmb=sx==='masculino'?(88.36+13.4*p+4.8*h-5.7*i):(447.6+9.2*p+3.1*h-4.3*i);
+  const fat={sedentario:1.2,leve:1.375,moderado:1.55,'muito ativo':1.725,atleta:1.9};
+  let tdee=Math.round(tmb*(fat[ativ]||1.55));
+  if(obj==='emagrecimento') tdee=Math.round(tdee*0.85);
+  if(obj==='ganho de massa muscular') tdee=Math.round(tdee*1.1);
+  const prot=Math.round(p*(obj==='ganho de massa muscular'?2.2:1.8));
+  const gord=Math.round((tdee*0.25)/9);
+  const carb=Math.max(Math.round((tdee-prot*4-gord*9)/4),0);
+  meta={kcal:tdee,p:prot,c:carb,g:gord};
+  document.getElementById('m-kcal').textContent=tdee.toLocaleString();
+  document.getElementById('m-p').textContent=prot;
+  document.getElementById('m-c').textContent=carb;
+  document.getElementById('m-g').textContent=gord;
+  const tot=prot+carb+gord;
+  setTimeout(()=>{
+    document.getElementById('bar-mp').style.width=(prot/tot*100)+'%';
+    document.getElementById('bar-mc').style.width=(carb/tot*100)+'%';
+    document.getElementById('bar-mg').style.width=(gord/tot*100)+'%';
+  },100);
+  const out=document.getElementById('macro-res');
+  out.className='ai-output loading'; out.innerHTML='Gerando plano alimentar... <span class="cursor"></span>';
+  try{
+    const r=await claude(`Nutricionista esportivo: plano nutricional para ${sx}, ${i} anos, ${p}kg, ${h}cm, atividade: ${ativ}, objetivo: ${obj}, restrições: ${g('n-restr')||"nenhuma"}. Meta: ${tdee}kcal | P:${prot}g | C:${carb}g | G:${gord}g. Mostre distribuição refeições, top 10 alimentos, dicas práticas. Português.`);
+    out.className='ai-output'; typeText(out,r);
+  }catch(e){out.className='ai-output';out.textContent='⚠️ Macros calculados! Erro no plano: '+e.message;}
+  btn.disabled=false; btn.innerHTML='🔢 Calcular com IA';
+}
+
+// ============ ALIMENTOS ============
+async function addAlimento(){
+  const nome=document.getElementById('f-nome').value.trim();
+  const qty=document.getElementById('f-qty').value.trim();
+  const meal=document.getElementById('f-meal').value;
+  const errEl=document.getElementById('food-err');
+  errEl.style.display='none';
+  if(!nome){errEl.textContent='Digite o nome do alimento.';errEl.style.display='block';return;}
+  if(!qty){errEl.textContent='Digite a quantidade (ex: 100g, 1 xícara).';errEl.style.display='block';return;}
+  const btn=document.getElementById('btn-add');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Calculando...';
+  const tempId=Date.now();
+  alimentos.push({id:tempId,nome,qty,meal,loading:true,kcal:0,p:0,c:0,g:0});
+  renderDia();
+  try{
+    const raw=await claude(`Calcule macros de: "${nome}", quantidade: "${qty}". Responda SOMENTE JSON: {"kcal":0,"proteina":0.0,"carboidrato":0.0,"gordura":0.0,"nota":"desc curta"}`,"Responda APENAS com JSON válido, sem texto extra, sem markdown.");
+    const data=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    const idx=alimentos.findIndex(a=>a.id===tempId);
+    if(idx>=0) alimentos[idx]={id:tempId,nome,qty,meal,loading:false,kcal:Math.round(data.kcal||0),p:parseFloat((data.proteina||0).toFixed(1)),c:parseFloat((data.carboidrato||0).toFixed(1)),g:parseFloat((data.gordura||0).toFixed(1)),nota:data.nota||''};
+    document.getElementById('f-nome').value='';
+    document.getElementById('f-qty').value='';
+  }catch(e){
+    alimentos=alimentos.filter(a=>a.id!==tempId);
+    errEl.textContent='Erro ao calcular. Tente: "100g de arroz branco cozido".';
+    errEl.style.display='block';
+  }
+  renderDia();
+  btn.disabled=false; btn.innerHTML='🔍 Calcular e Adicionar';
+}
+
+function renderDia(){
+  const tot=alimentos.filter(a=>!a.loading).reduce((acc,a)=>({kcal:acc.kcal+a.kcal,p:acc.p+a.p,c:acc.c+a.c,g:acc.g+a.g}),{kcal:0,p:0,c:0,g:0});
+  const temMeta=meta.kcal>0;
+  document.getElementById('warn-meta').style.display=temMeta?'none':'block';
+  document.getElementById('prog-content').style.display=temMeta?'block':'none';
+  if(temMeta){
+    document.getElementById('dia-kcal').textContent=Math.round(tot.kcal);
+    document.getElementById('dia-meta').textContent=meta.kcal.toLocaleString();
+    const rest=meta.kcal-Math.round(tot.kcal);
+    const el=document.getElementById('dia-falta');
+    el.textContent=rest>0?rest:0; el.style.color=rest<0?'var(--danger)':'var(--text)';
+    anim('bar-dia',Math.min(Math.round(tot.kcal/meta.kcal*100),100));
+    document.getElementById('dia-p').textContent=Math.round(tot.p)+'g';
+    document.getElementById('dia-c').textContent=Math.round(tot.c)+'g';
+    document.getElementById('dia-g').textContent=Math.round(tot.g)+'g';
+    document.getElementById('dia-mp').textContent=meta.p;
+    document.getElementById('dia-mc').textContent=meta.c;
+    document.getElementById('dia-mg').textContent=meta.g;
+    anim('bar-dp',Math.min(meta.p?Math.round(tot.p/meta.p*100):0,100));
+    anim('bar-dc',Math.min(meta.c?Math.round(tot.c/meta.c*100):0,100));
+    anim('bar-dg',Math.min(meta.g?Math.round(tot.g/meta.g*100):0,100));
+  }
+  const ordem=['Café da manhã','Lanche manhã','Almoço','Lanche tarde','Jantar','Ceia','Pré-treino','Pós-treino'];
+  const emj={'Café da manhã':'☕','Lanche manhã':'🍎','Almoço':'🍽️','Lanche tarde':'🥜','Jantar':'🌙','Ceia':'🌛','Pré-treino':'💪','Pós-treino':'⚡'};
+  const grp={};
+  alimentos.forEach(a=>{if(!grp[a.meal])grp[a.meal]=[];grp[a.meal].push(a);});
+  const c=document.getElementById('meals-list');
+  if(!Object.keys(grp).length){c.innerHTML='<div class="empty-state"><div class="big">🍽️</div>Nenhum alimento registrado ainda.</div>';return;}
+  let html='';
+  ordem.forEach(m=>{
+    if(!grp[m]) return;
+    const items=grp[m];
+    const mK=items.filter(a=>!a.loading).reduce((s,a)=>s+a.kcal,0);
+    html+=`<div class="meal-section"><div class="meal-hdr"><div><h4>${emj[m]||'🍴'} ${m}</h4><div class="meal-sub">${Math.round(mK)} kcal</div></div></div><div class="meal-body">`;
+    items.forEach(a=>{
+      if(a.loading) html+=`<div class="food-item"><div class="food-loading"><span class="spinner"></span>Calculando "${a.nome}"...</div></div>`;
+      else html+=`<div class="food-item"><div class="food-info"><div class="food-name">${a.nome}</div><div class="food-qty-txt">📏 ${a.qty}${a.nota?' · '+a.nota:''}</div><div class="food-macros"><span class="mp mp-k">🔥 ${a.kcal}kcal</span><span class="mp mp-p">P ${a.p}g</span><span class="mp mp-c">C ${a.c}g</span><span class="mp mp-g">G ${a.g}g</span></div></div><button onclick="remAlimento(${a.id})" style="background:rgba(255,79,106,0.12);color:var(--danger);border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:13px;flex-shrink:0">✕</button></div>`;
+    });
+    html+=`</div></div>`;
+  });
+  c.innerHTML=html;
+}
+function remAlimento(id){alimentos=alimentos.filter(a=>a.id!==id);renderDia();}
+function limparDia(){if(alimentos.length&&confirm('Limpar registros do dia?')){alimentos=[];renderDia();}}
+
+// ============ ÁGUA ============
+function setMetaAgua(){
+  const v=parseInt(document.getElementById('w-meta-in').value);
+  if(v>0){metaAgua=v;renderAgua();}
+}
+function addAgua(ml){
+  const agora=new Date();
+  aguaLog.push({ml,hora:agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})});
+  renderAgua();
+}
+function addAguaCustom(){
+  const v=parseInt(document.getElementById('w-custom').value);
+  if(v>0){addAgua(v);document.getElementById('w-custom').value='';}
+}
+function limparAgua(){if(aguaLog.length&&confirm('Limpar registros de água?')){aguaLog=[];renderAgua();}}
+function renderAgua(){
+  const total=aguaLog.reduce((s,a)=>s+a.ml,0);
+  const pct=Math.min(Math.round(total/metaAgua*100),100);
+  document.getElementById('w-total').textContent=total.toLocaleString();
+  document.getElementById('w-meta').textContent=metaAgua.toLocaleString();
+  document.getElementById('w-pct').textContent=pct+'%';
+  anim('w-bar',pct);
+  const log=document.getElementById('w-log');
+  if(!aguaLog.length){log.innerHTML='<div class="empty-state"><div class="big">💧</div>Nenhum registro ainda. Beba água!</div>';return;}
+  log.innerHTML=[...aguaLog].reverse().map((a,i)=>`
+    <div class="water-log-item">
+      <span>💧 +${a.ml} ml</span>
+      <span class="time">${a.hora}</span>
+    </div>`).join('');
+}
+
+// ============ PESO ============
+function addPeso(){
+  const val=parseFloat(document.getElementById('p-val').value);
+  const date=document.getElementById('p-date').value;
+  if(!val||!date){alert('Preencha peso e data.');return;}
+  // Remove duplicado do mesmo dia
+  pesoLog=pesoLog.filter(p=>p.date!==date);
+  pesoLog.push({val,date});
+  pesoLog.sort((a,b)=>a.date.localeCompare(b.date));
+  document.getElementById('p-val').value='';
+  renderPeso();
+}
+function remPeso(date){pesoLog=pesoLog.filter(p=>p.date!==date);renderPeso();}
+function renderPeso(){
+  if(!pesoLog.length){
+    document.getElementById('peso-stats-card').style.display='none';
+    document.getElementById('peso-list').innerHTML='<div class="empty-state"><div class="big">⚖️</div>Nenhum registro ainda.</div>';
+    return;
+  }
+  document.getElementById('peso-stats-card').style.display='block';
+  const atual=pesoLog[pesoLog.length-1].val;
+  const inicial=pesoLog[0].val;
+  const diff=(atual-inicial).toFixed(1);
+  document.getElementById('p-atual').textContent=atual+'kg';
+  document.getElementById('p-inicial').textContent=inicial+'kg';
+  const dEl=document.getElementById('p-diff');
+  dEl.textContent=(diff>0?'+':'')+diff+'kg';
+  dEl.style.color=diff<0?'var(--accent)':diff>0?'var(--danger)':'var(--muted)';
+
+  // Chart
+  const labels=pesoLog.map(p=>{const [y,m,d]=p.date.split('-');return `${d}/${m}`;});
+  const vals=pesoLog.map(p=>p.val);
+  if(pesoChart) pesoChart.destroy();
+  const ctx=document.getElementById('peso-chart').getContext('2d');
+  pesoChart=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[{label:'Peso (kg)',data:vals,borderColor:'#c8f135',backgroundColor:'rgba(200,241,53,0.08)',borderWidth:2.5,pointBackgroundColor:'#c8f135',pointRadius:5,pointHoverRadius:7,tension:0.35,fill:true}]},
+    options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.parsed.y} kg`}}},scales:{x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#6b6b80',font:{size:11}}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#6b6b80',font:{size:11},callback:v=>v+'kg'}}}}
+  });
+
+  const list=document.getElementById('peso-list');
+  const items=[...pesoLog].reverse();
+  list.innerHTML=items.map((p,i)=>{
+    const prev=pesoLog[pesoLog.length-1-i-1];
+    const d=prev?(p.val-prev.val).toFixed(1):null;
+    const [y,mo,dy]=p.date.split('-');
+    return `<div class="weight-item">
+      <div><div class="w-date">${dy}/${mo}/${y}</div></div>
+      <div class="w-val">${p.val} <span style="font-size:14px;color:var(--muted)">kg</span></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        ${d!==null?`<span class="w-diff ${d<0?'down':'up'}">${d>0?'+':''}${d}kg</span>`:'<span style="color:var(--muted);font-size:12px">—</span>'}
+        <button onclick="remPeso('${p.date}')" style="background:rgba(255,79,106,0.12);color:var(--danger);border:none;border-radius:6px;padding:5px 8px;cursor:pointer;font-size:11px">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Preencher data de hoje no input
+document.addEventListener('DOMContentLoaded',()=>{
+  const hoje=new Date().toISOString().split('T')[0];
+  document.getElementById('p-date').value=hoje;
+});
+
+// ============ NOTIFICAÇÕES ============
+function ativarNotificacoes(){
+  if(!('Notification' in window)){alert('Seu navegador não suporta notificações.');return;}
+  Notification.requestPermission().then(p=>{
+    if(p==='granted'){
+      registrarAlertas();
+      addNotifLog('✅','Sistema','Notificações ativadas com sucesso!','#c8f135');
+      renderNotifLog();
+      alert('✅ Notificações ativadas! Você receberá alertas nos horários configurados.');
+    } else {
+      alert('⚠️ Permissão negada. Ative as notificações nas configurações do navegador.');
+    }
+  });
+}
+
+function toggleNotif(tipo){
+  notifEnabled[tipo]=document.getElementById('notif-'+tipo+'-toggle').checked;
+  if(notifEnabled[tipo]){
+    addNotifLog('🔔',tipo==='meal'?'Refeição':tipo==='water'?'Hidratação':'Peso','Alertas ativados','#c8f135');
+    renderNotifLog();
+  }
+}
+
+function registrarAlertas(){
+  // Limpar intervalos antigos
+  Object.values(notifIntervals).forEach(clearInterval);
+  notifIntervals={};
+
+  const g=id=>document.getElementById(id).value;
+  const horarios=[
+    {id:'nt-cafe',emoji:'☕',msg:'Hora do café da manhã! Registre sua refeição.'},
+    {id:'nt-lanche1',emoji:'🍎',msg:'Hora do lanche da manhã!'},
+    {id:'nt-almoco',emoji:'🍽️',msg:'Hora do almoço! Não esqueça de registrar.'},
+    {id:'nt-lanche2',emoji:'🥜',msg:'Hora do lanche da tarde!'},
+    {id:'nt-jantar',emoji:'🌙',msg:'Hora do jantar!'},
+    {id:'nt-peso',emoji:'⚖️',msg:'Lembre de registrar seu peso hoje!'},
+  ];
+
+  // Simular notificações testando horário a cada minuto
+  notifIntervals.meal=setInterval(()=>{
+    if(!notifEnabled.meal) return;
+    const agora=new Date();
+    const horaAtual=agora.getHours().toString().padStart(2,'0')+':'+agora.getMinutes().toString().padStart(2,'0');
+    horarios.forEach(h=>{
+      if(g(h.id)===horaAtual){
+        enviarNotif(h.emoji+' ShapeAI',h.msg);
+        addNotifLog(h.emoji,'Refeição',h.msg,'#c8f135');
+        renderNotifLog();
+      }
+    });
+  },60000);
+
+  // Alertas de água a cada hora
+  notifIntervals.water=setInterval(()=>{
+    if(!notifEnabled.water) return;
+    const total=aguaLog.reduce((s,a)=>s+a.ml,0);
+    if(total<metaAgua){
+      enviarNotif('💧 ShapeAI',`Beba água! Você tomou ${total}ml de ${metaAgua}ml hoje.`);
+      addNotifLog('💧','Hidratação',`Lembrete de água — ${total}ml/${metaAgua}ml`,'#38bdf8');
+      renderNotifLog();
+    }
+  },3600000);
+}
+
+function enviarNotif(titulo,corpo){
+  if(Notification.permission==='granted') new Notification(titulo,{body:corpo,icon:'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f4aa.png'});
+}
+
+function addNotifLog(emoji,tipo,msg,cor){
+  const agora=new Date();
+  const hora=agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  notifLog.unshift({emoji,tipo,msg,hora,cor});
+  if(notifLog.length>20) notifLog.pop();
+}
+
+function renderNotifLog(){
+  const el=document.getElementById('notif-log-list');
+  if(!notifLog.length){el.innerHTML='<div class="empty-state" style="padding:16px"><div class="big" style="font-size:24px">🔕</div>Nenhum alerta ainda.</div>';return;}
+  el.innerHTML=notifLog.map(n=>`
+    <div class="notif-item">
+      <div class="notif-dot" style="background:${n.cor}"></div>
+      <div style="flex:1"><div style="font-weight:600;font-size:13px">${n.emoji} ${n.tipo}</div><div style="font-size:12px;color:var(--muted)">${n.msg}</div></div>
+      <div style="font-size:11px;color:var(--muted);white-space:nowrap">${n.hora}</div>
+    </div>`).join('');
+}
+
+// ============ HISTÓRICO ============
+function salvarHist(tipo){
+  const agora=new Date();
+  const data=agora.toLocaleDateString('pt-BR')+' '+agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  const conteudo=tipo==='treino'?document.getElementById('treino-res').textContent:document.getElementById('macro-res').textContent;
+  historico.unshift({tipo,data,conteudo});
+  renderHist(); showScreen('historico');
+}
+function renderHist(){
+  const el=document.getElementById('hist-lista');
+  if(!historico.length){el.innerHTML='<div class="empty-state"><div class="big">📂</div>Nenhum item salvo ainda.</div>';return;}
+  el.innerHTML=historico.map((item,i)=>`
+    <div class="hist-item" onclick="verItem(${i})">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span class="tag ${item.tipo==='treino'?'tag-green':'tag-blue'}">${item.tipo==='treino'?'💪 Treino':'🥗 Nutrição'}</span>
+        <span style="font-size:11px;color:var(--muted)">${item.data}</span>
+      </div>
+      <div style="margin-top:7px;font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.conteudo.substring(0,80)}...</div>
+    </div>`).join('');
+}
+function verItem(i){const w=window.open('','_blank');w.document.write(`<pre style="font-family:sans-serif;padding:24px;white-space:pre-wrap;line-height:1.7;max-width:700px;margin:0 auto">${historico[i].conteudo}</pre>`);}
+
+// ============ FOTO ============
+let fotoBase64 = null;
+
+function handleFoto(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    fotoBase64 = ev.target.result; // full data URL
+    document.getElementById('foto-preview').src = fotoBase64;
+    document.getElementById('foto-preview-wrap').style.display = 'block';
+    document.getElementById('btn-foto').style.display = 'flex';
+    document.getElementById('foto-resultado').style.display = 'none';
+    document.getElementById('foto-err').style.display = 'none';
+    const drop = document.getElementById('foto-drop');
+    drop.classList.add('has-photo');
+    drop.innerHTML = `<div style="font-size:28px;margin-bottom:6px">✅</div><div style="font-size:13px;font-weight:600;color:var(--accent)">Foto carregada!</div><div style="font-size:12px;color:var(--muted);margin-top:3px">Clique para trocar</div><input type="file" id="foto-input" accept="image/*" capture="environment" style="display:none" onchange="handleFoto(event)">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function analisarFoto(){
+  if(!fotoBase64){ alert('Selecione uma foto primeiro.'); return; }
+  const qty  = document.getElementById('foto-qty').value.trim();
+  const meal = document.getElementById('foto-meal').value;
+  const errEl = document.getElementById('foto-err');
+  const resEl = document.getElementById('foto-resultado');
+  errEl.style.display = 'none';
+
+  const btn = document.getElementById('btn-foto');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Analisando...';
+  resEl.style.display = 'block';
+  resEl.className = 'ai-output loading';
+  resEl.innerHTML = '🤖 Identificando os alimentos na foto... <span class="cursor"></span>';
+
+  try {
+    // Extract base64 data and media type from data URL
+    const [meta2, b64] = fotoBase64.split(',');
+    const mediaType = meta2.match(/:(.*?);/)[1]; // e.g. image/jpeg
+
+    const body = {
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1200,
+      system: "Você é um nutricionista especialista em identificar alimentos por foto e calcular seus macronutrientes. Responda APENAS com JSON válido, sem texto extra.",
+      messages: [{
+        role: "user",
+        content: [
+          { type: "image", source: { type: "base64", media_type: mediaType, data: b64 } },
+          { type: "text", text: `Identifique TODOS os alimentos visíveis nesta foto de refeição. ${qty ? 'Quantidade informada: '+qty+'.' : 'Estime as quantidades visualmente.'} Responda SOMENTE com este JSON: {"alimentos":[{"nome":"nome do alimento","quantidade":"ex: 150g","kcal":000,"proteina":0.0,"carboidrato":0.0,"gordura":0.0}],"totalKcal":000,"totalProteina":0.0,"totalCarboidrato":0.0,"totalGordura":0.0,"descricao":"descrição geral do prato"}` }
+        ]
+      }]
+    };
+
+    const r = await fetch(SERVIDOR, {
+      method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)
+    });
+    if(!r.ok) throw new Error("API "+r.status);
+    const d = await r.json();
+    const raw = d.content.map(b=>b.text||"").join("");
+    const data = JSON.parse(raw.replace(/```json|```/g,'').trim());
+
+    // Render rich result
+    resEl.className = 'ai-output';
+    let html = `<div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px">🍽️ ${data.descricao||'Refeição identificada'}</div>`;
+    html += `<div style="margin-bottom:12px">`;
+    (data.alimentos||[]).forEach(a=>{
+      html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+        <div><div style="font-size:13px;font-weight:600">${a.nome}</div><div style="font-size:11px;color:var(--muted)">📏 ${a.quantidade}</div></div>
+        <div style="text-align:right;font-size:12px">
+          <span style="color:var(--accent);font-weight:700">${a.kcal}kcal</span>
+          <div style="color:var(--muted);margin-top:2px">P:${a.proteina}g C:${a.carboidrato}g G:${a.gordura}g</div>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+    html += `<div style="background:var(--card);border-radius:10px;padding:12px;margin-top:4px">
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Total do prato</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <span class="mp mp-k">🔥 ${data.totalKcal} kcal</span>
+        <span class="mp mp-p">P ${data.totalProteina}g</span>
+        <span class="mp mp-c">C ${data.totalCarboidrato}g</span>
+        <span class="mp mp-g">G ${data.totalGordura}g</span>
+      </div>
+    </div>`;
+    html += `<button onclick="adicionarFotoAoDia(${JSON.stringify(data).replace(/'/g,"&apos;")},'${meal}')" class="btn btn-primary" style="margin-top:12px">✅ Adicionar ao dia</button>`;
+    resEl.innerHTML = html;
+
+  } catch(e) {
+    resEl.style.display = 'none';
+    errEl.textContent = 'Erro ao analisar a foto. Tente uma foto mais clara e bem iluminada. Detalhe: '+e.message;
+    errEl.style.display = 'block';
+  }
+  btn.disabled = false; btn.innerHTML = '🤖 Analisar com IA';
+}
+
+function adicionarFotoAoDia(data, meal){
+  // Add each identified food item
+  (data.alimentos||[]).forEach(a=>{
+    alimentos.push({
+      id: Date.now()+Math.random(),
+      nome: a.nome,
+      qty: a.quantidade,
+      meal,
+      loading: false,
+      kcal: Math.round(a.kcal||0),
+      p: parseFloat((a.proteina||0).toFixed(1)),
+      c: parseFloat((a.carboidrato||0).toFixed(1)),
+      g: parseFloat((a.gordura||0).toFixed(1)),
+      nota: '📸 via foto'
+    });
+  });
+
+  // Reset foto UI
+  fotoBase64 = null;
+  document.getElementById('foto-preview-wrap').style.display = 'none';
+  document.getElementById('btn-foto').style.display = 'none';
+  document.getElementById('foto-resultado').style.display = 'none';
+  document.getElementById('foto-qty').value = '';
+  const drop = document.getElementById('foto-drop');
+  drop.className = '';
+  drop.innerHTML = `<div style="font-size:36px;margin-bottom:8px">📷</div><div style="font-size:14px;font-weight:600;color:var(--text)">Clique para escolher foto</div><div style="font-size:12px;color:var(--muted);margin-top:4px">ou tire uma foto com a câmera</div><input type="file" id="foto-input" accept="image/*" capture="environment" style="display:none" onchange="handleFoto(event)">`;
+
+  renderDia();
+  // Scroll down to meals list
+  setTimeout(()=>document.getElementById('meals-list').scrollIntoView({behavior:'smooth'}),200);
+}
+
+// ============ UTILS ============
+function anim(id,pct){setTimeout(()=>{const el=document.getElementById(id);if(el)el.style.width=pct+'%';},50);}
+function typeText(el,text){el.textContent='';let i=0;const sp=Math.max(4,Math.min(12,1800/text.length));function t(){if(i<text.length){el.textContent+=text[i++];el.scrollTop=el.scrollHeight;setTimeout(t,sp);}}t();}
+</script>
+</body>
+</html>
